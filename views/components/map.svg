@@ -1,0 +1,92 @@
+<svg viewBox="0 0 1150 600" style="width: 100%; height: 100vh;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+  <!-- Верхні ліві-ліві кімнати -->
+  <rect x="0" y="0" width="120" height="80" fill="#FFE0E0" stroke="#000" class="room" data-room-id="wc1"/>
+  <text x="60" y="40" text-anchor="middle" font-size="12">WC</text>
+  <rect x="0" y="80" width="120" height="80" fill="#E0E0E0" stroke="#000" class="room" data-room-id="warehouse10"/>
+  <text x="60" y="120" text-anchor="middle" font-size="11">Підсобне приміщення</text>
+  <rect x="0" y="160" width="120" height="80" fill="#E6F2FF" stroke="#000" class="room" data-room-id="3"/>
+  <text x="60" y="200" text-anchor="middle" font-size="12">Кімната 3</text>
+  <rect x="0" y="240" width="120" height="80" fill="#E6F2FF" stroke="#000" class="room" data-room-id="4"/>
+  <text x="60" y="280" text-anchor="middle" font-size="12">Кімната 4</text>
+  <rect x="0" y="320" width="120" height="80" fill="#E6F2FF" stroke="#000" class="room" data-room-id="5"/>
+  <text x="60" y="360" text-anchor="middle" font-size="12">Кімната 5</text>
+
+  <!-- Верхні ліві-праві кімнати -->
+  <rect x="160" y="0" width="120" height="80" fill="#F0F4C3" stroke="#000" class="room" data-room-id="washing1"/>
+  <text x="220" y="40" text-anchor="middle" font-size="12">Пральня</text>
+  <rect x="160" y="80" width="120" height="80" fill="#E0E0E0" stroke="#000" class="room" data-room-id="warehouse11"/>
+  <text x="220" y="120" text-anchor="middle" font-size="11">Підсобне приміщення</text>
+  <rect x="160" y="160" width="120" height="80" fill="#E6F2FF" stroke="#000" class="room" data-room-id="2"/>
+  <text x="220" y="200" text-anchor="middle" font-size="12">Кімната 2</text>
+  <rect x="160" y="240" width="120" height="80" fill="#E6F2FF" stroke="#000" class="room" data-room-id="1"/>
+  <text x="220" y="280" text-anchor="middle" font-size="12">Кімната 1</text>
+  <rect x="160" y="320" width="120" height="80" fill="#D3D3D3" stroke="#000" class="room" data-room-id="stairs1"/>
+  <text x="220" y="360" text-anchor="middle" font-size="12">Сходи</text>
+
+  <!-- Центральні кімнати -->
+  <rect x="280" y="320" width="120" height="80" fill="#FFDAB9" stroke="#000" class="room" data-room-id="kitchen1"/>
+  <text x="340" y="360" text-anchor="middle" font-size="12">Кухня</text>
+
+  <rect x="400" y="280" width="160" height="120" fill="#FFF3E0" stroke="#000" class="room" data-room-id="eatingroom"/>
+  <text x="480" y="340" text-anchor="middle" font-size="12">Їдальня</text>
+  <rect x="560" y="280" width="160" height="120" fill="#DFF0D8" stroke="#000" class="room" data-room-id="restingroom"/>
+  <text x="640" y="340" text-anchor="middle" font-size="12">Зал відпочинку</text>
+
+  <rect x="720" y="320" width="120" height="80" fill="#FFDAB9" stroke="#000" class="room" data-room-id="kitchen2"/>
+  <text x="780" y="360" text-anchor="middle" font-size="12">Кухня</text>
+
+  <!-- Нижні  -->
+  <rect x="0" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="6"/>
+  <text x="40" y="500" text-anchor="middle" font-size="12">Кімната 6</text>
+  <rect x="80" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="7"/>
+  <text x="120" y="500" text-anchor="middle" font-size="12">Кімната 7</text>
+  <rect x="160" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="8"/>
+  <text x="200" y="500" text-anchor="middle" font-size="12">Кімната 8</text>
+  <rect x="240" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="9"/>
+  <text x="280" y="500" text-anchor="middle" font-size="12">Кімната 9</text>
+  <rect x="320" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="10"/>
+  <text x="360" y="500" text-anchor="middle" font-size="12">Кімната 10</text>
+  <rect x="400" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="11"/>
+  <text x="440" y="500" text-anchor="middle" font-size="12">Кімната 11</text>
+  <rect x="480" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="12"/>
+  <text x="520" y="500" text-anchor="middle" font-size="12">Кімната 12</text>
+  <rect x="560" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="13"/>
+  <text x="600" y="500" text-anchor="middle" font-size="12">Кімната 13</text>
+  <rect x="640" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="14"/>
+  <text x="680" y="500" text-anchor="middle" font-size="12">Кімната 14</text>
+  <rect x="720" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="15"/>
+  <text x="760" y="500" text-anchor="middle" font-size="12">Кімната 15</text>
+  <rect x="800" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="16"/>
+  <text x="840" y="500" text-anchor="middle" font-size="12">Кімната 16</text>
+  <rect x="880" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="17"/>
+  <text x="920" y="500" text-anchor="middle" font-size="12">Кімната 17</text>
+  <rect x="960" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="18"/>
+  <text x="1000" y="500" text-anchor="middle" font-size="12">Кімната 18</text>
+  <rect x="1040" y="440" width="80" height="120" fill="#E6F2FF" stroke="#000" class="room" data-room-id="19"/>
+  <text x="1080" y="500" text-anchor="middle" font-size="12">Кімната 19</text>
+
+<!-- 1140 - 120 - 120 40 -->
+    <!-- Верхні праві-ліві кімнати -->
+  <rect x="840" y="0" width="120" height="80" fill="#F0F4C3" stroke="#000" class="room" data-room-id="washing2"/>
+  <text x="900" y="40" text-anchor="middle" font-size="12">Пральня</text>
+  <rect x="840" y="80" width="120" height="80" fill="#E0E0E0" stroke="#000" class="room" data-room-id="warehouse21"/>
+  <text x="900" y="120" text-anchor="middle" font-size="11">Підсобне приміщення</text>
+  <rect x="840" y="160" width="120" height="80" fill="#E6F2FF" stroke="#000" class="room" data-room-id="23"/>
+  <text x="900" y="200" text-anchor="middle" font-size="12">Кімната 23</text>
+  <rect x="840" y="240" width="120" height="80" fill="#E6F2FF" stroke="#000" class="room" data-room-id="24"/>
+  <text x="900" y="280" text-anchor="middle" font-size="12">Кімната 24</text>
+  <rect x="840" y="320" width="120" height="80" fill="#D3D3D3" stroke="#000" class="room" data-room-id="stairs2"/>
+  <text x="900" y="360" text-anchor="middle" font-size="12">Сходи</text>
+
+  <!-- Верхні праві-праві кімнати -->
+  <rect x="1000" y="0" width="120" height="80" fill="#FFE0E0" stroke="#000" class="room" data-room-id="wc2"/>
+  <text x="1060" y="40" text-anchor="middle" font-size="12">WC</text>
+  <rect x="1000" y="80" width="120" height="80" fill="#E0E0E0" stroke="#000" class="room" data-room-id="warehouse20"/>
+  <text x="1060" y="120" text-anchor="middle" font-size="11">Підсобне приміщення</text>
+  <rect x="1000" y="160" width="120" height="80" fill="#E6F2FF" stroke="#000" class="room" data-room-id="22"/>
+  <text x="1060" y="200" text-anchor="middle" font-size="12">Кімната 22</text>
+  <rect x="1000" y="240" width="120" height="80" fill="#E6F2FF" stroke="#000" class="room" data-room-id="21"/>
+  <text x="1060" y="280" text-anchor="middle" font-size="12">Кімната 21</text>
+  <rect x="1000" y="320" width="120" height="80" fill="#E6F2FF" stroke="#000" class="room" data-room-id="20"/>
+  <text x="1060" y="360" text-anchor="middle" font-size="12">Кімната 20</text>
+</svg>

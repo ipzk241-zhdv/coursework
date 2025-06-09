@@ -1,0 +1,52 @@
+.drop-zone {
+    min-height: 50px;
+    border: 2px dashed #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    margin-bottom: 10px;
+}
+
+.drop-zone.over {
+    border-color: #007bff;
+    background-color: #e7f1ff;
+}
+
+.dragging {
+    opacity: 0.5;
+}
+
+.module-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.module-controls button {
+    margin-left: 5px;
+}
+
+.delete-indicator {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #dc3545;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.delete-indicator.active {
+    display: block;
+}
+
+.loading-indicator {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+}
