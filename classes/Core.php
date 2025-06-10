@@ -131,9 +131,6 @@ class Core
             $cacheEnabled = $this->settings['to_cache'];
         }
 
-        // убрать
-        $cacheEnabled = false;
-
         $cacheLifetime = $this->settings['cache_lifetime']; // in seconds
         $cacheKey = md5($_SERVER['REQUEST_URI']);
         $cachePath = __DIR__ . '/../cache/pages/' . $cacheKey . '.html';
@@ -155,7 +152,6 @@ class Core
         $data = $callback();
 
         if ($cacheEnabled && !$this->isAdminController() && Request::method() !== "POST") {
-            // Если контроллер вернул массив, рендерим только контент
             if (is_array($data) && isset($data['content'])) {
                 $html = $data['content'];
             } else {

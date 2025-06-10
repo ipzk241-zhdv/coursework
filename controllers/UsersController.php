@@ -39,7 +39,6 @@ class UsersController extends Controller
     {
         $errors = [];
         if (Request::method() === 'POST') {
-            // потім змінить на реквест алл
             $name = trim(Request::post('name', ''));
             $lastName = trim(Request::post('lastName', ''));
             $patronymic = trim(Request::post('patronymic', ''));
@@ -58,7 +57,6 @@ class UsersController extends Controller
             }
         }
 
-        // Передати помилки і попередні введені дані для повторного відображення форми
         return $this->view('Register', [
             'errors' => $errors,
             'name' => $name ?? '',
@@ -80,6 +78,7 @@ class UsersController extends Controller
         if (Request::method() === 'POST') {
             $this->handleProfilePost();
         }
+        $_SERVER['REQUEST_METHOD'] = 'GET';
         return $this->view('Profile - Hostel', ["user" => Core::getInstance()->session->get('user')]);
     }
 
@@ -95,9 +94,8 @@ class UsersController extends Controller
         }
 
         $data = Request::all();
-        $data['id'] = $id; // додаємо id, обов'язково
+        $data['id'] = $id;
 
-        // Перевірка підтвердження пароля
         if (!password_verify($data['confirm_password'] ?? '', $user->password)) {
             Core::log("Невірний підтверджуючий пароль");
             return;
@@ -105,14 +103,12 @@ class UsersController extends Controller
 
         unset($data['confirm_password']);
 
-        // Оновлення пароля, якщо задано
         if (!empty($data['password'])) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         } else {
-            unset($data['password']); // не оновлювати
+            unset($data['password']);
         }
 
-        // Обробка аватара
         if (!empty($_FILES['avatar']['tmp_name'])) {
             $avatar = $_FILES['avatar'];
             $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
@@ -136,7 +132,6 @@ class UsersController extends Controller
                 return;
             }
 
-            // Видалення старого аватара (якщо не default.png)
             if ($user->avatar !== 'default.png') {
                 $oldAvatar = $uploadDir . $user->avatar;
                 if (file_exists($oldAvatar)) {
@@ -148,10 +143,9 @@ class UsersController extends Controller
 
             $data['avatar'] = $avatarName;
         } else {
-            unset($data['avatar']); // не оновлювати
+            unset($data['avatar']);
         }
 
-        // Фільтрація тільки дозволених полів
         $allowedKeys = ['id', 'name', 'lastname', 'patronymic', 'email', 'password', 'avatar', 'date_of_birth'];
         $data = array_filter(
             $data,
@@ -159,7 +153,6 @@ class UsersController extends Controller
             ARRAY_FILTER_USE_KEY
         );
 
-        // Оновлення
         $updatedUser = Users::apiUpdate($data);
         if (!$updatedUser) {
             Core::log("Оновлення не вдалося");

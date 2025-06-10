@@ -16,4 +16,3 @@ error_reporting(E_ALL);
 $core = Core::getInstance();
 $core->Init();
 $core->run();
-//$core->done();

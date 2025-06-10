@@ -133,7 +133,7 @@ foreach ($statusCodes as $status) {
             <ul class="list-group">
                 <?php foreach ($topCommentUsers as $u): ?>
                     <li class="list-group-item d-flex align-items-center">
-                        <?= htmlspecialchars($u['name'] ?? '-') ?>
+                        <?= htmlspecialchars($u['name'] . " " . $u['lastName'] . " " . $u['patronymic'] ?? '-') ?>
                         <span class="badge bg-primary rounded-pill mx-3"><?= (int)($u['comments'] ?? 0) ?></span>
                     </li>
                 <?php endforeach; ?>

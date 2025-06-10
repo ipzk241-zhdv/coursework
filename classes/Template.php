@@ -17,6 +17,7 @@ class Template
     {
         $this->params[$key] = $value;
     }
+
     public function addParams(array $params)
     {
         $this->params = array_merge($this->params, $params);
@@ -26,10 +27,12 @@ class Template
     {
         $this->templatePath = $templatePath;
     }
+
     public function getParams()
     {
         return $this->params;
     }
+
     public function render()
     {
         if (file_exists($this->templatePath)) {
@@ -44,6 +47,7 @@ class Template
             return ob_get_clean();
         }
     }
+    
     public function display()
     {
         echo $this->render();

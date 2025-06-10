@@ -42,7 +42,6 @@ class AdminModules extends Model
         $module = new AdminModules();
         $find = $module->findByCondition(["name" => $name])[0];
         if ($module === null) return false;
-        // array count > 0 return false?
 
         $module->id = $find['id'];
         $module->name = $name;

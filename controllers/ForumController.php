@@ -29,7 +29,6 @@ class ForumController extends Controller
             }
         }
 
-        // Кількість тем у підкатегоріях
         $threadsCountRows = $db->selectQuery("
         SELECT subcategory_id, COUNT(*) as cnt
         FROM threads
@@ -40,7 +39,6 @@ class ForumController extends Controller
             $countThreads[$row['subcategory_id']] = (int)$row['cnt'];
         }
 
-        // Кількість коментарів у підкатегоріях
         $messagesCountRows = $db->selectQuery("
         SELECT t.subcategory_id, COUNT(c.id) as cnt
         FROM comments c
@@ -52,7 +50,6 @@ class ForumController extends Controller
             $countMessages[$row['subcategory_id']] = (int)$row['cnt'];
         }
 
-        // Остання активність (користувач + дата) у підкатегоріях
         $lastActiveRaw = $db->selectQuery("
         SELECT subcategory_id, CONCAT(name, ' ', lastname, ' ', patronymic) as username, created_at FROM (
             SELECT 
@@ -98,7 +95,6 @@ class ForumController extends Controller
             ];
         }
 
-        // Останні 5 постів (threads)
         $latestPosts = $db->selectQuery("
         SELECT th.id, th.title, th.created_at, CONCAT(u.name, ' ', u.lastname) AS username
         FROM threads th
@@ -107,7 +103,6 @@ class ForumController extends Controller
         LIMIT 5
     ");
 
-        // Загальна статистика
         $statisticsRows = $db->selectQuery("
         SELECT 
             (SELECT COUNT(*) FROM threads) AS threads,
@@ -186,7 +181,6 @@ class ForumController extends Controller
             return ["error" => "no slug"];
         }
 
-        // Знайдемо підкатегорію
         $subcategory = Subcategories::findByCondition(['slug' => $subcategorySlug])[0];
         if (!$subcategory) {
             return ["error" => "no subcategory"];
@@ -194,14 +188,12 @@ class ForumController extends Controller
 
         $subcategoryId = $subcategory['id'];
 
-        // Загальна кількість тредів (для пагінації)
         $totalCount = $db->selectQuery("
             SELECT COUNT(*) AS count FROM threads WHERE subcategory_id = :subcategory_id
         ", ['subcategory_id' => $subcategoryId])[0]['count'];
 
         $totalPages = ceil($totalCount / $pageSize);
 
-        // Список тредів з обмеженням
         $threads = $db->selectQuery("
             SELECT 
             t.id,
@@ -287,7 +279,6 @@ class ForumController extends Controller
         $pageSize = 10;
         $offset   = ($page - 1) * $pageSize;
 
-        // 1. Дістати сам тред
         $thread = $db->selectQuery("
             SELECT t.*, 
                    CONCAT(u.name, ' ', u.lastname) AS author_name,
@@ -323,8 +314,6 @@ class ForumController extends Controller
             return ["error" => "no thread"];
         }
 
-        // 2. Дістати ВСІ коментарі цього треду (без обмеження) для подальшої логіки
-        //    Ми їх підвантажуємо у строгу послідовність ORDER BY created_at ASC, щоби зберігати хронологію.
         $allComments = $db->selectQuery("
             SELECT c.*, 
                    CONCAT(u.name, ' ', u.lastname) AS author_name,
@@ -354,48 +343,37 @@ class ForumController extends Controller
             ORDER BY c.created_at ASC
         ", ['thread_id' => $threadId]);
 
-        // 3. Створимо масив для швидкого доступу за id
         $commentById = [];
         foreach ($allComments as $c) {
             $commentById[(int)$c['id']] = $c;
         }
 
-        // 4. Знайдемо «топ-предка» (ancestor) для кожного коментаря:
-        //    Якщо parent_id = 0/NULL/'' → сам коментар вважаємо топ-рівневим.
-        //    Інакше «підіймаємось» угору по ланцюжку parent_id, поки не натрапимо на вузол з parent_id = 0.
-        $topAncestorOf = []; // [ comment_id => top_level_id ]
+        $topAncestorOf = [];
         foreach ($allComments as $c) {
             $id  = (int)$c['id'];
             $pid = ($c['parent_id'] === null || $c['parent_id'] === '' ? 0 : (int)$c['parent_id']);
 
             if ($pid === 0) {
-                // Самій себе вважаємо топом
                 $topAncestorOf[$id] = $id;
             } else {
-                // Підіймаємось угору по parent_id
                 $current = $c;
                 while (true) {
                     $p = ($current['parent_id'] === null || $current['parent_id'] === ''
                         ? 0
                         : (int)$current['parent_id']);
                     if ($p === 0) {
-                        // Знайшли вузол з parent_id = 0
                         $topAncestorOf[$id] = (int)$current['id'];
                         break;
                     }
-                    // Якщо з якихось причин батька немає в commentById, 
-                    // вважаємо самій себе top-рівнем (захист від дивних даних у БД)
                     if (!isset($commentById[$p])) {
                         $topAncestorOf[$id] = $id;
                         break;
                     }
-                    // Інакше переходимо до запису-«батька»
                     $current = $commentById[$p];
                 }
             }
         }
 
-        // 5. Виділимо список усіх топ-коментарів (де parent_id = 0)
         $topComments = [];
         foreach ($allComments as $c) {
             $pid = ($c['parent_id'] === null || $c['parent_id'] === '' ? 0 : (int)$c['parent_id']);
@@ -404,32 +382,23 @@ class ForumController extends Controller
             }
         }
 
-        // 6. З огляду на $pageSize і $page обчислимо загальну кількість сторінок:
         $totalCount = count($topComments);
         $totalPages = (int) ceil($totalCount / $pageSize);
 
-        // Якщо $page пішов за межі, клацнемо на останню сторінку
         if ($page > $totalPages && $totalPages > 0) {
             $page = $totalPages;
             $offset = ($page - 1) * $pageSize;
         }
 
-        // 7. Зараз вибираємо «видимі» top-коментарі для поточної сторінки:
-        //    Вони будуть у порядку, в якому стоять у $topComments
         $visibleTopComments = array_slice($topComments, $offset, $pageSize);
-        // Витягнемо їхні id
         $visibleTopIds = array_map(function ($c) {
             return (int)$c['id'];
         }, $visibleTopComments);
 
-        // 8. Скільки сторінок, якщо topComments = 0? 
-        //    У такому випадку $totalPages = 0, але ми маємо обійти помилку / нормалізувати
         if ($totalPages === 0) {
             $totalPages = 1;
         }
 
-        // 9. Тепер зі всієї маси $allComments відібрати ті, 
-        //    чий topAncestor належить до $visibleTopIds (або це сам top-коментар).
         $commentsToShow = [];
         foreach ($allComments as $c) {
             $cid     = (int)$c['id'];
@@ -439,10 +408,9 @@ class ForumController extends Controller
             }
         }
 
-        // 10. Передамо до view лише ті коментарі, які необхідно рендерити зараз:
         return $this->view('Тема - ' . $thread['title'], [
             'thread'      => $thread,
-            'comments'    => $commentsToShow,  // плоский масив: всі top- і їхні нащадки
+            'comments'    => $commentsToShow,
             'currentPage' => $page,
             'totalPages'  => $totalPages,
         ]);

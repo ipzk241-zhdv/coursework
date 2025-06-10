@@ -104,22 +104,18 @@ class DB
                 $paramIndex++;
             }
 
-            // Додати повну фразу (необов’язково, але зазвичай корисно)
             $fullParam = "{$field}_{$paramIndex}";
             $fieldParts[] = "$field LIKE :$fullParam";
             $params[$fullParam] = $value . '%';
             $paramIndex++;
 
-            // Об’єднати усі умови для одного поля через OR
             $group = '(' . implode(' OR ', $fieldParts) . ')';
             $whereParts[] = $group;
         }
 
-        // Між різними полями завжди AND
         $whereString = 'WHERE ' . implode(' OR ', $whereParts);
         return [$whereString, $params];
     }
-
 
 
     public function count($table, $where = null, $or = false, $search = false)

@@ -8,12 +8,14 @@ class Session
     {
         $_SESSION[$key] = $value;
     }
+
     public function setValues(array $values)
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value);
         }
     }
+    
     public function get($key)
     {
         return $_SESSION[$key] ?? null;

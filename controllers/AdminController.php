@@ -189,7 +189,6 @@ class AdminController extends Controller
     {
         $db = Core::getInstance()->db;
 
-        // 1. Статистика по статус-кодам за 30 днів
         $statusStats = $db->selectQuery(
             "SELECT 
             DATE(created_at) AS log_date,
@@ -202,7 +201,6 @@ class AdminController extends Controller
         "
         );
 
-        // 2. Статистика помилок по днях
         $errorStats = $db->selectQuery(
             "SELECT DATE(created_at) as day, status_code, COUNT(*) as count
              FROM http_logs
@@ -211,7 +209,6 @@ class AdminController extends Controller
              ORDER BY day"
         );
 
-        // 3. Нові користувачі за останні 30 днів
         $userGrowth = $db->selectQuery(
             "SELECT DATE(created_at) as day, COUNT(*) as count
              FROM users
@@ -219,9 +216,8 @@ class AdminController extends Controller
              GROUP BY day"
         );
 
-        // 4. Топ коментаторів
         $topCommentUsers = $db->selectQuery(
-            "SELECT u.id, u.name, COUNT(*) as comments
+            "SELECT u.id, u.name, u.lastName, u.patronymic, COUNT(*) as comments
              FROM comments c
              JOIN users u ON u.id = c.user_id
              GROUP BY u.id
@@ -229,7 +225,6 @@ class AdminController extends Controller
              LIMIT 10"
         );
 
-        // 5. Активність коментарів по днях
         $commentStats = $db->selectQuery(
             "SELECT DATE(created_at) as day, COUNT(*) as count
              FROM comments
@@ -237,7 +232,8 @@ class AdminController extends Controller
              GROUP BY day"
         );
 
-        // 6. Місця в блоках: вільно / зайнято
+        Core::log($commentStats);
+
         $blockOccupancy = $db->selectQuery(
             "SELECT 
                 CONCAT(b.floor, b.name) AS block_code,
@@ -263,27 +259,23 @@ class AdminController extends Controller
     #[Access(['admin'])]
     public function actionConstructor()
     {
-        // 1) Збереження через POST
         if (Request::method() === "POST") {
             return $this->handleConstructorPost();
         }
 
-        // 2) Запит через AJAX (GET ?ajax=1&slug=...)
         if (Request::get('ajax') == 1) {
             return $this->getPageSectionsJson();
         }
 
-        // 3) Просто рендеримо HTML
         return $this->renderPages();
     }
 
     protected function handleConstructorPost()
     {
-        $savedata = Request::all(); // отримаємо JSON як масив
+        $savedata = Request::all();
 
         if (!empty($savedata['slug']) && !empty($savedata['sections']) && is_array($savedata['sections'])) {
             AdminPageModules::editPageModules($savedata);
-            // повертаємо масив, Core::run() автоматично JSON-encodes
             return ['status' => 'success'];
         }
 
@@ -291,10 +283,6 @@ class AdminController extends Controller
         return ['error' => 'Неправильні дані'];
     }
 
-    /**
-     * GET-запит AJAX: повертає для переданого slug
-     * JSON: { sections: [ 'header' => [...], 'body' => [...], 'footer' => [...] ] }
-     */
     protected function getPageSectionsJson()
     {
         $slug = Request::get('slug', null);
@@ -303,17 +291,14 @@ class AdminController extends Controller
             return ['error' => 'Не вказано slug'];
         }
 
-        // Використовуємо PageController, щоб отримати розділи
         $pg = PageController::getInstance();
         $sections = $pg->getModulesBySection($slug);
 
-        // Якщо метод повернув null або не-масив — видаємо 404
         if (!is_array($sections)) {
             http_response_code(404);
             return ['error' => 'Сторінку не знайдено'];
         }
 
-        // Коректна структура для клієнта
         return ['sections' => $sections];
     }
 
@@ -322,7 +307,6 @@ class AdminController extends Controller
         $pg = PageController::getInstance();
         $pages = array_column($pg->getAllPages(), "slug");
 
-        // Модулі для першої сторінки в списку
         $firstSlug = $pages[0] ?? null;
         $pageModules = $firstSlug
             ? $pg->getModulesBySection($firstSlug)
@@ -331,9 +315,9 @@ class AdminController extends Controller
         $modules = $pg->getAllModules();
 
         $params  = [
-            "modules"     => $modules,       // всі доступні компоненти
-            "pages"       => $pages,         // список slug-ів
-            "pageModules" => $pageModules,   // для початкової сторінки
+            "modules"     => $modules,
+            "pages"       => $pages,
+            "pageModules" => $pageModules,
         ];
 
         return $this->view('Pages - Admin', $params, "views/admin/pages.php");
@@ -515,7 +499,6 @@ class AdminController extends Controller
     public function actionUpdateRoom()
     {
         $core = Core::getInstance();
-        // Перевірка AJAX та POST
         if (!Request::isAjax()) {
             $core->respondError(400, "Неправильний тип запиту");
             exit;
@@ -532,7 +515,6 @@ class AdminController extends Controller
             exit;
         }
 
-        // Підключення моделі кімнати
         $room = Rooms::findById($roomId);
         if (!$room) {
             $core->respondError(404, "Кімната не знайдена");
@@ -571,13 +553,10 @@ class AdminController extends Controller
             $room->room_type = $roomType;
         }
 
-        // Зберігаємо зміни кімнати
         if (!$room->save()) {
             $core->respondError(500, "Не вдалося оновити кімнату");
             exit;
         }
-
-        // Оновлення мешканців кімнати
 
         $res = Users::findByCondition(["room_id" => $roomId]);
         if ($res != null) {
@@ -592,7 +571,6 @@ class AdminController extends Controller
             }
         }
 
-        // Додаємо нових (якщо є)
         if (is_array($residents) && count($residents) > 0) {
             foreach ($residents as $residentId) {
                 $r = Users::findById($residentId);
@@ -625,7 +603,6 @@ class AdminController extends Controller
             return [];
         }
 
-        // Пошук користувачів, які ще не мешканці цієї кімнати (якщо room_id задано)
         $users = Users::findByCondition(["name" => "%$query%", "lastname" => "%$query%", "patronymic" => "%$query%", "email" => "%$query%"], limit: 5, or: true);
         if ($users) {
             foreach ($users as $key => $user) {

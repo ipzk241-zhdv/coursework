@@ -1,3 +1,15 @@
+<style>
+    .pagination-wrapper {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 0.5rem;
+    }
+
+    .pagination-wrapper ul.pagination {
+        flex-wrap: nowrap;
+    }
+</style>
+
 <div id="users-app" class="container my-4">
     <div class="row mb-3">
         <div class="col-md-6">
@@ -47,7 +59,7 @@
                 label: c.label || c.field,
                 sortable: c.sortable == 1,
                 searchable: c.searchable == 1,
-                type: c.type || "text", // додаємо тип (наприклад, "date", "text", тощо)
+                type: c.type || "text",
             }));
 
         sortField = tableConfig[0]?.field || "id";
@@ -114,7 +126,6 @@
 
         const tbody = document.createElement("tbody");
 
-        // Рядок для створення нового запису
         const newRow = document.createElement("tr");
         newRow.classList.add("table-success");
         const newRecord = {};
@@ -201,17 +212,83 @@
         pages
     }) {
         const container = document.getElementById("table-container");
+        const pagWrapper = document.createElement("div");
+        pagWrapper.className = "pagination-wrapper";
+
         const pag = document.createElement("nav");
         const ul = document.createElement("ul");
         ul.className = "pagination justify-content-center mt-3";
 
-        for (let i = 1; i <= pages; i++) {
+        // Максимальна кількість відображуваних сторінок (непарне число)
+        const maxVisiblePages = 7;
+        let startPage, endPage;
+
+        if (pages <= maxVisiblePages) {
+            startPage = 1;
+            endPage = pages;
+        } else {
+            const maxPagesBeforeCurrent = Math.floor(maxVisiblePages / 2);
+            const maxPagesAfterCurrent = Math.ceil(maxVisiblePages / 2) - 1;
+
+            if (page <= maxPagesBeforeCurrent) {
+                startPage = 1;
+                endPage = maxVisiblePages;
+            } else if (page + maxPagesAfterCurrent >= pages) {
+                startPage = pages - maxVisiblePages + 1;
+                endPage = pages;
+            } else {
+                startPage = page - maxPagesBeforeCurrent;
+                endPage = page + maxPagesAfterCurrent;
+            }
+        }
+
+        // Кнопка "Попередня"
+        const prevLi = document.createElement("li");
+        prevLi.className = "page-item" + (page === 1 ? " disabled" : "");
+        const prevBtn = document.createElement("button");
+        prevBtn.className = "page-link";
+        prevBtn.innerHTML = "&laquo;";
+        prevBtn.addEventListener("click", () => {
+            if (page > 1) {
+                currentPage = page - 1;
+                loadData();
+            }
+        });
+        prevLi.appendChild(prevBtn);
+        ul.appendChild(prevLi);
+
+        // Перша сторінка
+        if (startPage > 1) {
+            const firstLi = document.createElement("li");
+            firstLi.className = "page-item";
+            const firstBtn = document.createElement("button");
+            firstBtn.className = "page-link";
+            firstBtn.textContent = "1";
+            firstBtn.addEventListener("click", () => {
+                currentPage = 1;
+                loadData();
+            });
+            firstLi.appendChild(firstBtn);
+            ul.appendChild(firstLi);
+
+            if (startPage > 2) {
+                const dotsLi = document.createElement("li");
+                dotsLi.className = "page-item disabled";
+                const dotsSpan = document.createElement("span");
+                dotsSpan.className = "page-link";
+                dotsSpan.textContent = "...";
+                dotsLi.appendChild(dotsSpan);
+                ul.appendChild(dotsLi);
+            }
+        }
+
+        // Основні сторінки
+        for (let i = startPage; i <= endPage; i++) {
             const li = document.createElement("li");
             li.className = "page-item" + (i === page ? " active" : "");
             const btn = document.createElement("button");
             btn.className = "page-link";
             btn.textContent = i;
-            btn.disabled = i === page;
             btn.addEventListener("click", () => {
                 currentPage = i;
                 loadData();
@@ -220,8 +297,49 @@
             ul.appendChild(li);
         }
 
+        // Остання сторінка
+        if (endPage < pages) {
+            if (endPage < pages - 1) {
+                const dotsLi = document.createElement("li");
+                dotsLi.className = "page-item disabled";
+                const dotsSpan = document.createElement("span");
+                dotsSpan.className = "page-link";
+                dotsSpan.textContent = "...";
+                dotsLi.appendChild(dotsSpan);
+                ul.appendChild(dotsLi);
+            }
+
+            const lastLi = document.createElement("li");
+            lastLi.className = "page-item";
+            const lastBtn = document.createElement("button");
+            lastBtn.className = "page-link";
+            lastBtn.textContent = pages;
+            lastBtn.addEventListener("click", () => {
+                currentPage = pages;
+                loadData();
+            });
+            lastLi.appendChild(lastBtn);
+            ul.appendChild(lastLi);
+        }
+
+        // Кнопка "Наступна"
+        const nextLi = document.createElement("li");
+        nextLi.className = "page-item" + (page === pages ? " disabled" : "");
+        const nextBtn = document.createElement("button");
+        nextBtn.className = "page-link";
+        nextBtn.innerHTML = "&raquo;";
+        nextBtn.addEventListener("click", () => {
+            if (page < pages) {
+                currentPage = page + 1;
+                loadData();
+            }
+        });
+        nextLi.appendChild(nextBtn);
+        ul.appendChild(nextLi);
+
         pag.appendChild(ul);
-        container.appendChild(pag);
+        pagWrapper.appendChild(pag);
+        container.appendChild(pagWrapper);
     }
 
     document.getElementById("search-input").addEventListener(

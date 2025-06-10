@@ -72,7 +72,7 @@ function renderRoomCard(data) {
                     <strong>Блок:</strong> ${block.name}<br>
                     <strong>Кількість місць:</strong> ${room.places}
                 </div>
-                <img src="/public/rooms/${room.img ?? "default.png"}" alt="room image" class="img-fluid rounded mb-3">
+                <img src="/public/rooms/${room.img ?? "default.png"}" alt="room image" class="img-fluid rounded mb-3 w-50">
                 ${
                     room.places > 0
                         ? `
