@@ -100,9 +100,10 @@ class AdminController extends Controller
 
             $orderBy = "$sort $dir";
             if ($search !== '') {
-                $tableKey = strtolower(basename(str_replace('\\', '/', $modelClass)));
+                $tableKey = $tableName;
                 $fields = TableConfigs::findByCondition(["table_name" => $tableKey]);
-
+                Core::log($tableKey);
+                Core::log($fields);
                 $fields = array_filter($fields, function ($field) {
                     return isset($field['searchable']) && $field['searchable'] == 1;
                 });

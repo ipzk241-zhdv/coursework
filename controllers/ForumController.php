@@ -29,63 +29,19 @@ class ForumController extends Controller
             }
         }
 
-        $threadsCountRows = $db->selectQuery("
-        SELECT subcategory_id, COUNT(*) as cnt
-        FROM threads
-        GROUP BY subcategory_id
-    ");
+        $threadsCountRows = Threads::threadCounts();
         $countThreads = [];
         foreach ($threadsCountRows as $row) {
             $countThreads[$row['subcategory_id']] = (int)$row['cnt'];
         }
 
-        $messagesCountRows = $db->selectQuery("
-        SELECT t.subcategory_id, COUNT(c.id) as cnt
-        FROM comments c
-        JOIN threads t ON c.thread_id = t.id
-        GROUP BY t.subcategory_id
-    ");
+        $messagesCountRows = Comments::countCommentsInThread();
         $countMessages = [];
         foreach ($messagesCountRows as $row) {
             $countMessages[$row['subcategory_id']] = (int)$row['cnt'];
         }
 
-        $lastActiveRaw = $db->selectQuery("
-        SELECT subcategory_id, CONCAT(name, ' ', lastname, ' ', patronymic) as username, created_at FROM (
-            SELECT 
-                t.subcategory_id, 
-                u.name, u.lastname, u.patronymic,
-                th.created_at
-            FROM threads th
-            JOIN users u ON th.user_id = u.id
-            JOIN threads t ON th.id = t.id
-
-            UNION ALL
-
-            SELECT 
-                t.subcategory_id,
-                u.name, u.lastname, u.patronymic,
-                c.created_at
-            FROM comments c
-            JOIN users u ON c.user_id = u.id
-            JOIN threads t ON c.thread_id = t.id
-        ) AS combined
-        WHERE (subcategory_id, created_at) IN (
-            SELECT subcategory_id, MAX(created_at)
-            FROM (
-                SELECT t.subcategory_id, th.created_at
-                FROM threads th
-                JOIN threads t ON th.id = t.id
-
-                UNION ALL
-
-                SELECT t.subcategory_id, c.created_at
-                FROM comments c
-                JOIN threads t ON c.thread_id = t.id
-            ) AS sub
-            GROUP BY subcategory_id
-        )
-    ");
+        $lastActiveRaw = Threads::getLatestActiveThreads();
 
         $lastActiveUser = [];
         foreach ($lastActiveRaw as $row) {
@@ -95,14 +51,7 @@ class ForumController extends Controller
             ];
         }
 
-        $latestPosts = $db->selectQuery("
-        SELECT th.id, th.title, th.created_at, CONCAT(u.name, ' ', u.lastname) AS username
-        FROM threads th
-        JOIN users u ON th.user_id = u.id
-        ORDER BY th.created_at DESC
-        LIMIT 5
-    ");
-
+        $latestPosts = Threads::getLatestThreads();
         $statisticsRows = $db->selectQuery("
         SELECT 
             (SELECT COUNT(*) FROM threads) AS threads,
@@ -129,20 +78,20 @@ class ForumController extends Controller
         if (Request::method() !== "POST" || !Request::isAjax()) {
             $core->respondError(400, "Недозволений метод");
         } else {
-            $userid = Request::post('user_id', null);
-            if ($userid === null || $userid != $core->session->get('user')['id']) {
-                $core->respondError(400, "Користувачі не збігаються");
-            }
             $data = Request::all();
-
+            $data['user_id'] = (int)Core::getInstance()->session->get('user')['id'];
+            $_POST['user_id'] = $data['user_id'];
             $existing = Likes::findByCondition([
                 'user_id' => $data['user_id'],
                 'target_type' => $data['target_type'],
                 'target_id' => $data['target_id'],
             ]);
 
+            Core::log($data);
+            Core::log($existing);
+
             if ($existing) {
-                $existing = $existing[0]; // ← перший запис
+                $existing = $existing[0];
                 Likes::deleteById($existing['id']);
 
                 if ($existing['type'] !== $data['type']) {
@@ -171,7 +120,6 @@ class ForumController extends Controller
     #[Access(['student'])]
     public function actionSubcategory()
     {
-        $db = Core::getInstance()->db;
         $subcategorySlug = Request::get("subcategory", null);
         $page = max(1, (int)Request::get("page", 1));
         $pageSize = 10;
@@ -187,73 +135,9 @@ class ForumController extends Controller
         }
 
         $subcategoryId = $subcategory['id'];
-
-        $totalCount = $db->selectQuery("
-            SELECT COUNT(*) AS count FROM threads WHERE subcategory_id = :subcategory_id
-        ", ['subcategory_id' => $subcategoryId])[0]['count'];
-
+        $totalCount = Threads::countThreadsInSubcategory($subcategoryId);
         $totalPages = ceil($totalCount / $pageSize);
-
-        $threads = $db->selectQuery("
-            SELECT 
-            t.id,
-            t.title,
-            t.created_at,
-            t.pinned,
-            CONCAT(u.name, ' ', u.lastname) AS author_name,
-        
-            -- Коментарі: якщо немає — вивести 1
-            (
-                SELECT COUNT(*) FROM comments c WHERE c.thread_id = t.id
-            ) + 1 AS comments_count,
-            
-            -- Лайки як є
-            (SELECT COUNT(*) FROM likes l WHERE l.target_type = 'thread' AND l.target_id = t.id) AS likes_count,
-            
-            -- Якщо немає коментарів — автор треду
-            COALESCE((
-                SELECT CONCAT(us.name, ' ', us.lastname)
-                FROM comments c2
-                JOIN users us ON c2.user_id = us.id
-                WHERE c2.thread_id = t.id
-                ORDER BY c2.created_at DESC
-                LIMIT 1
-            ), CONCAT(u.name, ' ', u.lastname)) AS last_comment_user,
-        
-            -- Якщо немає коментарів — дата створення треду
-            COALESCE((
-                SELECT c2.created_at
-                FROM comments c2
-                WHERE c2.thread_id = t.id
-                ORDER BY c2.created_at DESC
-                LIMIT 1
-            ), t.created_at) AS last_comment_date,
-        
-            -- Якщо немає коментарів — аватар автора треду
-            COALESCE((
-                SELECT us.avatar
-                FROM comments c2
-                JOIN users us ON c2.user_id = us.id
-                WHERE c2.thread_id = t.id
-                ORDER BY c2.created_at DESC
-                LIMIT 1
-            ), u.avatar) AS last_comment_avatar
-        
-        FROM threads t
-        JOIN users u ON t.user_id = u.id
-        WHERE t.subcategory_id = :subcategory_id
-        ORDER BY 
-            CASE WHEN t.pinned IS NULL OR t.pinned = 0 THEN 1 ELSE 0 END,
-            t.pinned ASC,
-            t.created_at DESC
-
-        LIMIT :limit OFFSET :offset    
-        ", [
-            'subcategory_id' => $subcategoryId,
-            'limit' => $pageSize,
-            'offset' => $offset
-        ]);
-
+        $threads = Threads::getThreads($subcategoryId, $pageSize, $offset);
 
         return $this->view('Треди - ' . $subcategory['name'], [
             'threads' => $threads,
@@ -267,82 +151,17 @@ class ForumController extends Controller
     #[Access(['student'])]
     public function actionThread()
     {
-        if (Request::isAjax()) {
-            if (Request::method() === "POST") {
-                return $this->handleBasePost(Threads::class);
-            }
+        if (Request::isAjax() && Request::method() === "POST") {
+            return $this->handleBasePost(Threads::class);
         }
 
-        $db = Core::getInstance()->db;
         $threadId = (int) Request::get("id", 0);
         $page     = max(1, (int) Request::get("page", 1));
         $pageSize = 10;
         $offset   = ($page - 1) * $pageSize;
 
-        $thread = $db->selectQuery("
-            SELECT t.*, 
-                   CONCAT(u.name, ' ', u.lastname) AS author_name,
-                   u.avatar AS author_avatar, 
-                   s.slug AS subcategory_slug,
-
-                   -- Кількість лайків треду
-                   (
-                       SELECT COUNT(*) 
-                       FROM likes l 
-                       WHERE l.target_type = 'thread' 
-                         AND l.target_id   = t.id 
-                         AND l.type        = 'like'
-                   ) AS likes_count,
-           
-                   -- Кількість дизлайків треду
-                   (
-                       SELECT COUNT(*) 
-                       FROM likes l 
-                       WHERE l.target_type = 'thread' 
-                         AND l.target_id   = t.id 
-                         AND l.type        = 'dislike'
-                   ) AS dislikes_count
-
-            FROM threads t
-            JOIN users u ON t.user_id = u.id
-            JOIN subcategories s ON t.subcategory_id = s.id
-            WHERE t.id = :id
-            LIMIT 1
-        ", ['id' => $threadId])[0] ?? null;
-
-        if (!$thread) {
-            return ["error" => "no thread"];
-        }
-
-        $allComments = $db->selectQuery("
-            SELECT c.*, 
-                   CONCAT(u.name, ' ', u.lastname) AS author_name,
-                   u.avatar AS author_avatar,
-
-                   -- Лайки коментаря
-        (
-            SELECT COUNT(*) 
-            FROM likes l 
-            WHERE l.target_type = 'comment' 
-              AND l.target_id   = c.id 
-              AND l.type        = 'like'
-        ) AS likes_count,
-
-        -- Дизлайки коментаря
-        (
-            SELECT COUNT(*) 
-            FROM likes l 
-            WHERE l.target_type = 'comment' 
-              AND l.target_id   = c.id 
-              AND l.type        = 'dislike'
-        ) AS dislikes_count
-
-            FROM comments c
-            LEFT JOIN users u ON c.user_id = u.id
-            WHERE c.thread_id = :thread_id
-            ORDER BY c.created_at ASC
-        ", ['thread_id' => $threadId]);
-
+        $thread = Threads::getThread($threadId);
+        $allComments = Comments::getCommentsThread($threadId);
         $commentById = [];
         foreach ($allComments as $c) {
             $commentById[(int)$c['id']] = $c;
@@ -422,15 +241,14 @@ class ForumController extends Controller
         if (Request::isAjax() && Request::method() === "POST") {
             $core = Core::getInstance();
             $sessionUser = $core->session->get('user');
-
-            if (!$sessionUser || !isset($sessionUser['id'])) {
+            $_POST['user_id'] = $sessionUser['id'];
+            if (!$sessionUser) {
                 $core->respondError(401, "Необхідна автентифікація.");
                 exit;
             }
 
             $pid = (int) Request::post("parent_id", 0);
             $threadId = (int) Request::post("thread_id");
-            $userId = (int) Request::post("user_id");
 
             if (!$threadId) {
                 $core->respondError(400, "Не вказано ідентифікатор теми.");
@@ -440,11 +258,6 @@ class ForumController extends Controller
             $thread = Threads::findById($threadId);
             if (!$thread) {
                 $core->respondError(404, "Тему не знайдено.");
-                exit;
-            }
-
-            if ($userId !== (int)$sessionUser['id']) {
-                $core->respondError(403, "Недопустимий користувач.");
                 exit;
             }
 
@@ -604,18 +417,12 @@ class ForumController extends Controller
     public function actionCreateThread()
     {
         if (Request::method() === "POST" && Request::isAjax()) {
-            $data = Request::all();
-            Core::log($data);
-
+            $_POST['user_id'] = Core::getInstance()->session->get('user')['id'];
+            Core::log(Request::all());
             $core = Core::getInstance();
-            $userid = Request::post('user_id', null);
             $title = Request::post('title', null);
             $content = Request::post('content', null);
 
-            if ($userid === null || $userid != Core::getInstance()->session->get('user')['id']) {
-                $core->respondError(400, "Користувачі не збігаються");
-                exit;
-            }
             // 1 tag - 7 symbols
             if ($title === null || $content === null || strlen($title) < 5 || strlen($content) < 17) {
                 $core->respondError(400, "Вміст або заголовок відсутні або закороткі. Вміст має бути більше 10 символів, заголовок більше 5");

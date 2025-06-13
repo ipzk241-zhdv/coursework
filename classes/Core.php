@@ -135,8 +135,6 @@ class Core
         $cacheKey = md5($_SERVER['REQUEST_URI']);
         $cachePath = __DIR__ . '/../cache/pages/' . $cacheKey . '.html';
 
-        Core::log(['controller' => $this->controller, 'action' => $this->action, 'settings' => $this->settings['exclude_cache']]);
-
         if (in_array($this->action, $this->settings['exclude_cache'] ?? [], true) || $this->controller === 'Forum') {
             $cacheEnabled = false;
         }

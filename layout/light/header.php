@@ -1,7 +1,6 @@
 <?php
 
 use classes\Core;
-use classes\Session;
 use models\Users;
 
 ?>
@@ -16,7 +15,6 @@ use models\Users;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/public/css/style.css">
-    <!-- <link rel="stylesheet" href="../public/css/404.css"> -->
 </head>
 
 <body>

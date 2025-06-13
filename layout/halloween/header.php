@@ -16,47 +16,10 @@ use models\Users;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/public/css/style.css">
-    <!-- <link rel="stylesheet" href="../public/css/404.css"> -->
+    <link rel="stylesheet" href="/public/css/haloween.css">
 </head>
 
-<style>
-    header {
-        background: linear-gradient(90deg, #000000, #ff6f00);
-    }
 
-    .ghost,
-    .pumpkin {
-        position: fixed;
-        top: -50px;
-        font-size: 2rem;
-        z-index: 9999;
-        animation: floatDown 12s linear infinite;
-        pointer-events: none;
-    }
-
-    .ghost {
-        color: #eee;
-    }
-
-    .pumpkin {
-        color: orange;
-    }
-
-    @keyframes floatDown {
-        0% {
-            transform: translateY(-50px) translateX(0);
-        }
-
-        100% {
-            transform: translateY(100vh) translateX(50px);
-        }
-    }
-
-    footer {
-        background-color: rgba(0, 0, 0, 0.85);
-        color: orange;
-    }
-</style>
 
 <body>
     <?php for ($i = 0; $i < 7; $i++): ?>

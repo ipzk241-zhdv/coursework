@@ -16,43 +16,8 @@ use models\Users;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/public/css/style.css">
-    <!-- <link rel="stylesheet" href="../public/css/404.css"> -->
+    <link rel="stylesheet" href="/public/css/new-year.css">
 </head>
-
-<style>
-    body {
-        background: url('/public/img/snow-bg.jpg') no-repeat center center fixed;
-        background-size: cover;
-    }
-
-    header {
-        background: linear-gradient(90deg, #b71c1c, #f44336);
-    }
-
-    .snowflake {
-        position: fixed;
-        top: -50px;
-        color: white;
-        font-size: 1.5rem;
-        z-index: 9999;
-        animation: fall 10s linear infinite;
-    }
-
-    @keyframes fall {
-        0% {
-            transform: translateY(-10px) translateX(0);
-        }
-
-        100% {
-            transform: translateY(100vh) translateX(50px);
-        }
-    }
-
-    footer {
-        background-color: rgba(0, 0, 0, 0.8);
-        color: white;
-    }
-</style>
 
 <body>
     <?php for ($i = 0; $i < 12; $i++): ?>
